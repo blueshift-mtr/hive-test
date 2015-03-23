@@ -1,0 +1,1 @@
+HiveJobs = new Meteor.Collection('hive-jobs');
