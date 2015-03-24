@@ -8,3 +8,5 @@ meteor-platform
 autopublish
 insecure
 mirrorcell:hive-workers
+accounts-ui
+accounts-password

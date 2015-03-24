@@ -1,3 +1,5 @@
+Future = Npm.require('fibers/future');
+
 Hive = {
     _maxJobs : 1000,
 
@@ -32,6 +34,55 @@ Meteor.methods({
     },
     hiveQueueJobComplete: function(id) {
         HiveJobs.remove(id);
+    },
+    lockJob: function(jobId) {
+        var fut = new Future();
+
+        var job = HiveJobs.findOne(jobId);
+
+        if(job && job.locked && job.locked === true) {
+            throw new Meteor.Error('single-lock-error', 'Tried to Lock A Locked Job');
+        } else {
+
+            var lock = {
+                assign: this.userId || null,
+                locked: true
+            };
+
+            HiveJobs.update(jobId,
+                {
+                    $set : lock
+                }, function(err, res){
+                    if(err) throw new Meteor.Error('mongo-err', err);
+                    else {
+                        fut.return(200);
+                    }
+                });
+        }
+
+        return fut.wait();
+    },
+    getNextJob: function() {
+        var fut = new Future();
+
+        //TODO: Sort by date
+        var job = HiveJobs.findOne( { locked: false });
+
+        if(job) {
+            //Lock Job
+            HiveJobs.update(job._id, {
+                $set: {
+                    locked: true,
+                    assigned: this.userId
+                }
+            }, function(err, res){
+                if(err) throw new Meteor.Error('mongo-err', err);
+                else fut.return(job);
+            });
+        } else {
+            return -1;
+        }
+        return fut.wait();
     }
 });
 

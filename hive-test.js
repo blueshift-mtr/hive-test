@@ -24,21 +24,31 @@ if (Meteor.isServer) {
 
 if(Meteor.isClient) {
     Meteor.startup(function () {
-        console.log("Startup!");
-        HiveWorker.job("consoleTest", consoleTest);
 
-        for(var i = 0; i < 1000; i++) {
-            Hive.insertJob('consoleTest', { tag: "fuck you" });
+        if(Meteor.userId()) {
+            HiveWorker.addWorker();
         }
 
-        HiveWorker.addWorker(function() {
-        });
+        console.log("Startup!");
+
+        //Create a job schema
+        HiveWorker.job("consoleTest", consoleTest);
+
+        //Insert the job into the DB Queue
+        for(var i = 0; i < 100; i++) {
+            Hive.insertJob('consoleTest', { tag: "fuck you" });
+        }
     });
 
     function consoleTest(data, callback) {
         Meteor.setTimeout(function() {
             console.log("Hello World!", data);
             callback && callback();
-        }, 0);
+        }, 20000);
     };
+
+    Accounts.onLogin(function() {
+        //Initialize self as a worker (Start getting and processing Jobs)
+        HiveWorker.addWorker();
+    });
 }
