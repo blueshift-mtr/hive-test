@@ -10,48 +10,29 @@ createHiveObserver = function() {
         },
         removed: function() {
             console.log("Removed hive jab");
-            getNextJob();
+            //getNextJob();
 
         }
     });
 };
 
-/*
-function getNextJobs() {
-    for(var i = 0; i < (HiveWorker._maxConcurrentJobs - HiveWorker._currentJobNum); i++ ) {
-        var sorted = HiveJobs.findOne({ locked: false });
-        startJob(sorted);
-    }
-}*/
-
 function getNextJob() {
     if(HiveWorker._currentJobNum < HiveWorker._maxConcurrentJobs) {
-        HiveWorker._currentJobNum++;
-
         Meteor.call('getNextJob', function (err, res) {
             if (err) {
                 console.log("Error Getting Job" + err.reason);
             } else {
                 if (res === -1) {
-                    console.log("No Jobs Exist, exitting");
+                    console.log("No Jobs Exist, exiting");
                     return;
                 } else {
+                    HiveWorker._currentJobNum++;
                     startJob(res);
                 }
             }
             getNextJob();
         });
     }
-
-    /*HiveWorker._currentJobNum++;
-    console.log("Inside getNextJob");
-    var sorted = HiveJobs.findOne({ locked: false });
-    console.log("Got jobs", sorted.length);
-    var job = sorted.length > 0 ? sorted[0] : null;
-
-    if(job) {
-        startJob(job);
-    }*/
 };
 
 function startJob(job) {
@@ -79,30 +60,20 @@ function startJob(job) {
             console.log("Callback Recieved");
             console.log("Completing", thisJobId);
             Meteor.call('hiveQueueJobComplete', thisJobId);
+
             HiveWorker._currentJobNum--;
+
+            getNextJob();
         }, function (failureData) {
             console.log("Failed");
-            jobFailed(thisJobId, failureData)
-        });
-};
-function unlock(jobId) {
-    HiveJobs.update(jobId,
-        {
-            $set : { locked : false }
-        }
-    );
-}
+            Meteor.call('hiveQueueJobFailed', thisJobId, failureData, function(err, res){
+                if(err) {
+                    console.log("JOB FAILED - FAILURE -- DOUBLE FAILURE" + err.reason);
+                    return;
+                }
+                HiveWorker._currentJobNum--;
 
-function jobFailed(jobId, failureData) {
-    HiveJobs.update(jobId,
-        {
-            $push : { jobResults : failureData }
-        },
-        {
-            $set : {
-                added : new Date(),
-                locked : false
-            }
-        }
-    );
+                getNextJob();
+            });
+        });
 };

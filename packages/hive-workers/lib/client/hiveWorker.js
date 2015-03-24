@@ -1,6 +1,6 @@
 HiveWorker = {
     _currentJobNum : 0,
-    _maxConcurrentJobs : 30,
+    _maxConcurrentJobs : 40,
     _jobMap : {},
 
     addWorker : function(callback) {
@@ -10,7 +10,7 @@ HiveWorker = {
             createHiveObserver();
         });
     },
-    job : function(name, func) {
+    jobSchema : function(name, func) {
         this._jobMap[name] = {};
 
         this._jobMap[name] = func;

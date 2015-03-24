@@ -32,7 +32,7 @@ if(Meteor.isClient) {
         console.log("Startup!");
 
         //Create a job schema
-        HiveWorker.job("consoleTest", consoleTest);
+        HiveWorker.jobSchema("consoleTest", consoleTest);
 
         //Insert the job into the DB Queue
         for(var i = 0; i < 100; i++) {
@@ -40,11 +40,11 @@ if(Meteor.isClient) {
         }
     });
 
-    function consoleTest(data, callback) {
+    function consoleTest(data, callback, failureCallback) {
         Meteor.setTimeout(function() {
             console.log("Hello World!", data);
             callback && callback();
-        }, 20000);
+        }, 1000);
     };
 
     Accounts.onLogin(function() {
