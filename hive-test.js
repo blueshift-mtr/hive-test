@@ -35,7 +35,7 @@ if(Meteor.isClient) {
         HiveWorker.jobSchema("consoleTest", consoleTest);
 
         //Insert the job into the DB Queue
-        for(var i = 0; i < 100; i++) {
+        for(var i = 0; i < 1000; i++) {
             Hive.insertJob('consoleTest', { tag: "fuck you" });
         }
     });
@@ -44,7 +44,7 @@ if(Meteor.isClient) {
         Meteor.setTimeout(function() {
             console.log("Hello World!", data);
             callback && callback();
-        }, 1000);
+        }, 10000);
     };
 
     Accounts.onLogin(function() {

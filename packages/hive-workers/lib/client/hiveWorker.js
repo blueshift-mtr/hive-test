@@ -1,6 +1,6 @@
 HiveWorker = {
     _currentJobNum : 0,
-    _maxConcurrentJobs : 40,
+    _maxConcurrentJobs : 30,
     _jobMap : {},
 
     addWorker : function(callback) {

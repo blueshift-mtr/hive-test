@@ -10,7 +10,7 @@ createHiveObserver = function() {
         },
         removed: function() {
             console.log("Removed hive jab");
-            //getNextJob();
+            getNextJob();
 
         }
     });
@@ -18,15 +18,17 @@ createHiveObserver = function() {
 
 function getNextJob() {
     if(HiveWorker._currentJobNum < HiveWorker._maxConcurrentJobs) {
+        HiveWorker._currentJobNum++;
         Meteor.call('getNextJob', function (err, res) {
             if (err) {
                 console.log("Error Getting Job" + err.reason);
+                HiveWorker._currentJobNum--;
             } else {
                 if (res === -1) {
                     console.log("No Jobs Exist, exiting");
+                    HiveWorker._currentJobNum--;
                     return;
                 } else {
-                    HiveWorker._currentJobNum++;
                     startJob(res);
                 }
             }
